@@ -1,0 +1,44 @@
+{
+  "projects": [
+    {
+      "name": "Community Resource Hub",
+      "owner": "Maya Chen",
+      "status": "Active",
+      "recentActivity": "Published the first draft of the volunteer onboarding guide.",
+      "priority": "High",
+      "summary": "A welcoming home for practical guides and resources contributed by the community."
+    },
+    {
+      "name": "Open Data Garden",
+      "owner": "Jordan Lee",
+      "status": "Planning",
+      "recentActivity": "Reviewed dataset contribution guidelines with the research group.",
+      "priority": "Medium",
+      "summary": "Make shared datasets easier to discover, understand, and improve together."
+    },
+    {
+      "name": "Accessibility Field Notes",
+      "owner": "Samira Patel",
+      "status": "At risk",
+      "recentActivity": "The audit is underway; several mobile navigation checks still need volunteers.",
+      "priority": "High",
+      "summary": "Collect real-world accessibility findings and turn them into actionable improvements."
+    },
+    {
+      "name": "Neighborhood Stories",
+      "owner": "Alex Morgan",
+      "status": "Active",
+      "recentActivity": "Added three new interview transcripts for editorial review.",
+      "priority": "Medium",
+      "summary": "Preserve local voices through community-led interviews and short-form storytelling."
+    },
+    {
+      "name": "Contributor Welcome Kit",
+      "owner": "Riley Thompson",
+      "status": "Complete",
+      "recentActivity": "The updated getting-started checklist was approved by maintainers.",
+      "priority": "Low",
+      "summary": "Help first-time contributors find a friendly first task and get oriented quickly."
+    }
+  ]
+}

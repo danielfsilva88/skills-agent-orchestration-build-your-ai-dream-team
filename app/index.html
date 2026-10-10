@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f7f5">
+    <title>Project Pulse</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="dashboard">
+      <header class="dashboard-header">
+        <p class="eyebrow">Contributor workspace</p>
+        <h1>Project Pulse</h1>
+        <p class="introduction">
+          A clear snapshot of the work in motion, who is leading it, and where
+          contributors can make a difference.
+        </p>
+        <div class="header-note" aria-hidden="true">
+          <span class="pulse-dot"></span>
+          <span>Team project overview</span>
+        </div>
+      </header>
+
+      <section class="projects-section" aria-labelledby="projects-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Across the team</p>
+            <h2 id="projects-heading">Projects</h2>
+          </div>
+          <p class="section-caption">Status, ownership, and latest activity</p>
+        </div>
+
+        <p class="feedback" id="feedback" role="status" aria-live="polite">
+          Loading project updates…
+        </p>
+        <ul class="project-grid" id="project-list" aria-label="Projects"></ul>
+      </section>
+
+      <noscript>
+        <p class="feedback feedback--error">
+          Project updates need JavaScript to load. Please enable JavaScript and
+          refresh this page.
+        </p>
+      </noscript>
+    </main>
+
+    <script>
+      (() => {
+        const dataUrl = "project-data.json";
+        const feedback = document.getElementById("feedback");
+        const projectList = document.getElementById("project-list");
+        const requiredFields = ["name", "owner", "status", "recentActivity", "priority"];
+
+        function showMessage(message, state = "info") {
+          feedback.textContent = message;
+          feedback.className = `feedback${state === "error" ? " feedback--error" : ""}`;
+          feedback.hidden = false;
+          feedback.setAttribute("role", state === "error" ? "alert" : "status");
+          feedback.setAttribute("aria-live", state === "error" ? "assertive" : "polite");
+        }
+
+        function makeTextElement(tagName, className, text) {
+          const element = document.createElement(tagName);
+          element.className = className;
+          element.textContent = text;
+          return element;
+        }
+
+        function badgeTone(value, type) {
+          const normalized = value.trim().toLowerCase();
+          const knownValues = {
+            status: {
+              active: "active",
+              planning: "planning",
+              "at risk": "at-risk",
+              "at-risk": "at-risk",
+              blocked: "blocked",
+              complete: "complete"
+            },
+            priority: {
+              low: "low",
+              medium: "medium",
+              high: "high",
+              critical: "critical"
+            }
+          };
+          return knownValues[type][normalized] || "other";
+        }
+
+        function makeBadge(label, value, type) {
+          const badge = document.createElement("span");
+          badge.className = `badge badge--${type} badge--${badgeTone(value, type)}`;
+          badge.textContent = `${label}: ${value}`;
+          return badge;
+        }
+
+        function makeProjectCard(project) {
+          const item = document.createElement("li");
+          const card = document.createElement("article");
+          card.className = "project-card";
+
+          const title = makeTextElement("h3", "project-card__title", project.name.trim());
+          const badges = document.createElement("div");
+          badges.className = "project-card__badges";
+          badges.append(
+            makeBadge("Status", project.status.trim(), "status"),
+            makeBadge("Priority", project.priority.trim(), "priority")
+          );
+
+          const details = document.createElement("dl");
+          details.className = "project-details";
+          const ownerTerm = makeTextElement("dt", "", "Owner");
+          const ownerDescription = makeTextElement("dd", "project-owner", project.owner.trim());
+          const activityTerm = makeTextElement("dt", "", "Recent activity");
+          const activityDescription = makeTextElement(
+            "dd",
+            "project-activity",
+            project.recentActivity.trim()
+          );
+          details.append(ownerTerm, ownerDescription, activityTerm, activityDescription);
+
+          const summary = typeof project.summary === "string" && project.summary.trim()
+            ? project.summary.trim()
+            : "A short project summary has not been added yet.";
+          const summaryElement = makeTextElement("p", "project-summary", summary);
+
+          card.append(title, badges, details, summaryElement);
+          item.append(card);
+          return item;
+        }
+
+        function isValidProject(project) {
+          return project !== null
+            && typeof project === "object"
+            && !Array.isArray(project)
+            && requiredFields.every(
+              (field) => typeof project[field] === "string" && project[field].trim().length > 0
+            );
+        }
+
+        async function loadProjects() {
+          try {
+            const response = await fetch(dataUrl, { headers: { Accept: "application/json" } });
+            if (!response.ok) {
+              throw new Error(`The project data request failed (${response.status}).`);
+            }
+
+            const data = await response.json();
+            if (!data || typeof data !== "object" || !Array.isArray(data.projects)) {
+              throw new Error("The project data must contain a projects array.");
+            }
+
+            const projects = data.projects.filter(isValidProject);
+            const skippedCount = data.projects.length - projects.length;
+            if (projects.length > 0) {
+              const fragment = document.createDocumentFragment();
+              projects.forEach((project) => fragment.append(makeProjectCard(project)));
+              projectList.append(fragment);
+            }
+
+            if (projects.length === 0) {
+              showMessage(
+                data.projects.length === 0
+                  ? "There are no projects to show yet."
+                  : "No project records could be displayed because their required details are missing."
+              );
+            } else if (skippedCount > 0) {
+              showMessage(
+                `${skippedCount} incomplete project record${skippedCount === 1 ? " was" : "s were"} skipped.`
+              );
+            } else {
+              feedback.hidden = true;
+            }
+          } catch (error) {
+            showMessage(
+              `Project updates could not be loaded. ${error instanceof Error ? error.message : "Please try again later."}`,
+              "error"
+            );
+          }
+        }
+
+        loadProjects();
+      })();
+    </script>
+  </body>
+</html>
